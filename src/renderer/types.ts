@@ -30,3 +30,4 @@ export interface IssueWithType extends SecurityIssue {
 	type: IssueType;
 }
 
+
