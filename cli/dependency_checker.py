@@ -425,7 +425,10 @@ class DependencyChecker:
 
                 return vulnerabilities
             else:
-                print(f"Error querying NVD API: {response.status_code}")
+                # 404 means no CVE data found, which is expected and not an error
+                # Only log actual errors (5xx, 401, 403, etc.)
+                if response.status_code >= 500 or response.status_code in [401, 403]:
+                    print(f"Error querying NVD API: {response.status_code}")
                 return []
 
         except Exception as e:
