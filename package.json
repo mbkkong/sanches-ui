@@ -12,7 +12,10 @@
 		"package": "npm run build && electron-builder",
 		"package:mac": "npm run build && electron-builder --mac",
 		"package:win": "npm run build && electron-builder --win",
-		"package:linux": "npm run build && electron-builder --linux"
+		"package:linux": "npm run build && electron-builder --linux",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write .",
+		"format": "biome format --write ."
 	},
 	"keywords": [
 		"electron",
@@ -22,6 +25,7 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@biomejs/biome": "2.3.5",
 		"@types/node": "^22.10.1",
 		"@types/ws": "^8.18.1",
 		"concurrently": "^9.1.0",
