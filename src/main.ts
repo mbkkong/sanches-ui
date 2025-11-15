@@ -470,6 +470,23 @@ ipcMain.handle('delete-api-key', async () => {
 	return { success: true };
 });
 
+// Get Python paths based on whether app is packaged or in development
+function getPythonPaths(): { pythonExecutable: string; sanchesScript: string } {
+	if (app.isPackaged) {
+		// In packaged app, Python is in Resources/cli
+		const cliPath = path.join(process.resourcesPath, 'cli');
+		return {
+			pythonExecutable: path.join(cliPath, 'venv', 'bin', 'python'),
+			sanchesScript: path.join(cliPath, 'sanches.py'),
+		};
+	}
+	// In development, Python is in project root
+	return {
+		pythonExecutable: path.join(__dirname, '..', 'cli', 'venv', 'bin', 'python'),
+		sanchesScript: path.join(__dirname, '..', 'cli', 'sanches.py'),
+	};
+}
+
 // Run Sanches CLI and get security scan results
 async function runSanchesScan(): Promise<any> {
 	try {
@@ -494,11 +511,13 @@ async function runSanchesScan(): Promise<any> {
 			return null;
 		}
 		
-		const sanchesPath = path.join(__dirname, '../cli/sanches.py');
+		const { pythonExecutable, sanchesScript } = getPythonPaths();
 		const projectPath = activeProject?.path || process.cwd();
 		
-		// Execute Sanches CLI with --dir and --api flags
-		const command = `${sanchesPath} --dir "${projectPath}" --api-key "${apiKey}"`;
+		// Execute Sanches CLI with --dir and --api flags using venv Python
+		const command = `"${pythonExecutable}" "${sanchesScript}" --dir "${projectPath}" --api-key "${apiKey}"`;
+		
+		console.log('Running command:', command);
 		const { stdout, stderr } = await execAsync(command);
 		
 		if (stderr) {
@@ -563,7 +582,7 @@ function startSecurityScans(): void {
 				);
 			}
 		}
-	}, 60000); // 60000ms = 1 minute
+	}, 120000); // 60000ms = 1 minute
 }
 
 // Schedule periodic notifications (demo)

@@ -11,6 +11,8 @@
 		"build:renderer": "vite build",
 		"build:watch": "concurrently \"tsc --watch\" \"vite build --watch\"",
 		"electron:dev": "wait-on dist/main.js dist-react/index.html && electron . --remote-debugging-port=9222",
+		"setup:python": "./scripts/setup-python.sh",
+		"prepackage": "npm run setup:python",
 		"package": "npm run build && electron-builder",
 		"package:mac": "npm run build && electron-builder --mac",
 		"package:win": "npm run build && electron-builder --win",
@@ -50,7 +52,7 @@
 		"tailwind-merge": "^3.4.0",
 		"tailwindcss-animate": "^1.0.7",
 		"typescript": "^5.7.2",
-		"vite": "^7.2.2",
+		"vite": "^5.2.2",
 		"wait-on": "^9.0.3"
 	},
 	"dependencies": {
@@ -73,15 +75,18 @@
 			"dist/**/*",
 			"dist-react/**/*",
 			"assets/**/*",
-			"sanches",
 			"package.json"
 		],
 		"extraFiles": [
 			{
-				"from": "sanches",
-				"to": "Resources/sanches",
+				"from": "cli",
+				"to": "Resources/cli",
 				"filter": [
-					"**/*"
+					"**/*",
+					"!**/*.pyc",
+					"!**/__pycache__",
+					"!**/venv/lib/python*/site-packages/pip*",
+					"!**/venv/lib/python*/site-packages/setuptools*"
 				]
 			}
 		],
