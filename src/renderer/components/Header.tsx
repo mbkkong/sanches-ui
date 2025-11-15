@@ -1,9 +1,10 @@
 import React from 'react';
-import { Shield, Clock, Settings } from 'lucide-react';
+import { Clock, Settings } from 'lucide-react';
 import { Button } from './ui/button';
 import { Switch } from './ui/switch';
 import { Separator } from './ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import logo from '../../../assets/sanches.png';
 
 interface HeaderProps {
 	globalWatchEnabled: boolean;
@@ -27,8 +28,8 @@ export const Header: React.FC<HeaderProps> = ({
 				<div className="px-6 py-5">
 					<div className="flex items-center justify-between mb-5">
 						<div className="flex items-center gap-4">
-							<div className="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/90 shadow-lg shadow-primary/20">
-								<Shield className="w-8 h-8 text-white" />
+							<div className="flex items-center justify-center w-14 h-14">
+								<img src={logo} alt="Sanches Logo" className="w-14 h-14 object-contain" />
 							</div>
 							<div>
 								<h1 className="text-2xl font-bold text-slate-900">
