@@ -202,12 +202,9 @@
       <h3 class="text-lg font-bold text-cyber-accent mb-3">Add Project</h3>
       <div class="space-y-3">
         <div>
-          <label class="text-xs text-cyber-text/60 block mb-1">Project Name</label>
-          <input type="text" id="projectName" class="w-full bg-cyber-bg border border-cyber-accent/30 rounded px-2 py-1.5 text-sm text-cyber-text outline-none focus:border-cyber-accent" placeholder="My Project">
-        </div>
-        <div>
           <label class="text-xs text-cyber-text/60 block mb-1">Project Path</label>
           <input type="text" id="projectPath" class="w-full bg-cyber-bg border border-cyber-accent/30 rounded px-2 py-1.5 text-sm text-cyber-text font-mono outline-none focus:border-cyber-accent" placeholder="/path/to/project">
+          <p class="text-xs text-cyber-text/40 mt-1">Folder name will be used as project name</p>
         </div>
         <div class="flex gap-2 mt-4">
           <button id="saveProjectBtn" class="flex-1 px-3 py-1.5 bg-cyber-accent/20 border border-cyber-accent rounded hover:bg-cyber-accent/30 text-cyber-accent text-sm font-semibold">
@@ -249,7 +246,6 @@
     const manageProjectsBtn = document.getElementById('manageProjectsBtn');
     const addProjectModal = document.getElementById('addProjectModal');
     const manageProjectsModal = document.getElementById('manageProjectsModal');
-    const projectNameInput = document.getElementById('projectName');
     const projectPathInput = document.getElementById('projectPath');
     const saveProjectBtn = document.getElementById('saveProjectBtn');
     const cancelProjectBtn = document.getElementById('cancelProjectBtn');
@@ -440,9 +436,8 @@
     // Add project modal
     addProjectBtn.addEventListener('click', () => {
       addProjectModal.classList.remove('hidden');
-      projectNameInput.value = '';
       projectPathInput.value = '';
-      projectNameInput.focus();
+      projectPathInput.focus();
     });
 
     cancelProjectBtn.addEventListener('click', () => {
@@ -450,15 +445,14 @@
     });
 
     saveProjectBtn.addEventListener('click', async () => {
-      const name = projectNameInput.value.trim();
       const path = projectPathInput.value.trim();
       
-      if (!name || !path) {
-        alert('Please fill in both fields');
+      if (!path) {
+        alert('Please enter a project path');
         return;
       }
       
-      await window.electronAPI.addProject({ name, path });
+      await window.electronAPI.addProject(path);
       await loadProjects();
       addProjectModal.classList.add('hidden');
       

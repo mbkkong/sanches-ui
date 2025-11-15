@@ -39,11 +39,13 @@ let scanInterval: NodeJS.Timeout | null = null;
 // Create the main application window
 function createWindow(): void {
 	mainWindow = new BrowserWindow({
-		width: 420,
-		height: 650,
-		show: false,
-		frame: false,
-		resizable: false,
+		width: 1200,
+		height: 800,
+		minWidth: 800,
+		minHeight: 600,
+		show: false, // Don't show on startup - only show when user clicks menu bar
+		frame: true, // Show title bar and window controls
+		resizable: true,
 		transparent: false,
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js'),
@@ -51,40 +53,61 @@ function createWindow(): void {
 			contextIsolation: true,
 		},
 		backgroundColor: '#0a0e27',
-		skipTaskbar: true,
+		skipTaskbar: false, // Show in dock
+		title: 'Sanches - Security Monitor',
 	});
 
-	mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
+	mainWindow.loadFile(path.join(__dirname, '../dist-react/index.html'));
 
 	// Open DevTools in development
 	if (process.env.NODE_ENV === 'development') {
 		mainWindow.webContents.openDevTools();
 	}
 
-	mainWindow.on('closed', () => {
-		mainWindow = null;
-	});
-
-	// Hide when focus is lost
-	mainWindow.on('blur', () => {
-		if (!mainWindow?.webContents.isDevToolsOpened()) {
+	// Prevent closing - hide instead to run in background
+	mainWindow.on('close', (event) => {
+		if (!isQuitting) {
+			event.preventDefault();
 			mainWindow?.hide();
 		}
+	});
+
+	mainWindow.on('closed', () => {
+		mainWindow = null;
 	});
 }
 
 // Create system tray for menu bar
 function createTray(): void {
 	// Create a template icon for the menu bar
-	const icon = nativeImage.createFromDataURL(
-		'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAIRlWElmTU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAACCgAwAEAAAAAQAAACAAAAAAQWxvbmdBAAAJcEhEUgAAACAAAAAg+/////8ACCAeJElEQVRIDe2XB3SUVRbHf99M'
-	);
-	icon.setTemplateImage(true);
+	// macOS will automatically use @2x versions for retina displays
+	const iconPath = app.isPackaged
+		? path.join(process.resourcesPath, 'assets', 'sanchesDark.png')
+		: path.join(__dirname, '..', 'assets', 'sanchesDark.png');
+	
+	console.log('Tray icon path:', iconPath);
+	const icon = nativeImage.createFromPath(iconPath);
+	
+	if (icon.isEmpty()) {
+		console.error('Failed to load tray icon from:', iconPath);
+	}
+	
+	icon.setTemplateImage(true); // This makes it adapt to light/dark menu bar
 
 	tray = new Tray(icon);
-	tray.setToolTip('Sanches Security Monitor');
+	tray.setToolTip('Sanches - Security Monitor');
 
 	const contextMenu = Menu.buildFromTemplate([
+		{
+			label: 'Show Sanches',
+			click: () => {
+				if (mainWindow) {
+					mainWindow.show();
+					mainWindow.focus();
+				}
+			},
+		},
+		{ type: 'separator' },
 		{
 			label: 'Run Scan Now',
 			click: () => {
@@ -97,7 +120,7 @@ function createTray(): void {
 		},
 		{ type: 'separator' },
 		{
-			label: 'Quit',
+			label: 'Quit Sanches',
 			click: () => {
 				isQuitting = true;
 				app.quit();
@@ -106,11 +129,28 @@ function createTray(): void {
 	]);
 
 	tray.setContextMenu(contextMenu);
+	
+	// Don't show window on direct click - only via menu
+}
 
-	// Toggle window on click
-	tray.on('click', () => {
-		toggleWindow();
-	});
+// Update tray icon to show notification state
+function updateTrayIcon(hasIssues: boolean): void {
+	if (!tray) return;
+
+	const iconName = hasIssues ? 'sanchesUpdateDark.png' : 'sanchesDark.png';
+	const iconPath = app.isPackaged
+		? path.join(process.resourcesPath, 'assets', iconName)
+		: path.join(__dirname, '..', 'assets', iconName);
+	
+	const icon = nativeImage.createFromPath(iconPath);
+	
+	if (icon.isEmpty()) {
+		console.error('Failed to load update icon from:', iconPath);
+		return;
+	}
+	
+	icon.setTemplateImage(true);
+	tray.setImage(icon);
 }
 
 // Toggle window visibility and position it below the tray icon
@@ -245,11 +285,16 @@ ipcMain.handle('get-projects', async () => {
 	return { projects, activeProjectId };
 });
 
-ipcMain.handle('add-project', async (_event, project: Omit<Project, 'id' | 'watchEnabled'>) => {
+ipcMain.handle('add-project', async (_event, projectPath: string) => {
 	const projects = (store as any).get('projects', []) as Project[];
+	
+	// Extract folder name from path
+	const folderName = path.basename(projectPath);
+	
 	const newProject: Project = {
-		...project,
 		id: Date.now().toString(),
+		name: folderName,
+		path: projectPath,
 		watchEnabled: true, // Enable watch by default
 	};
 	projects.push(newProject);
@@ -373,6 +418,13 @@ function startSecurityScans(): void {
 	runSanchesScan().then((result) => {
 		if (result) {
 			mainWindow?.webContents.send('scan-result', result);
+			
+			// Update tray icon based on initial scan results
+			const criticalCount = result.critical?.length || 0;
+			const highCount = result.high?.length || 0;
+			const mediumCount = result.medium?.length || 0;
+			const hasIssues = criticalCount > 0 || highCount > 0 || mediumCount > 0;
+			updateTrayIcon(hasIssues);
 		}
 	});
 
@@ -382,8 +434,16 @@ function startSecurityScans(): void {
 		if (result) {
 			mainWindow?.webContents.send('scan-result', result);
 			
-			// Send notification if critical issues found
+			// Check if there are any issues
 			const criticalCount = result.critical?.length || 0;
+			const highCount = result.high?.length || 0;
+			const mediumCount = result.medium?.length || 0;
+			const hasIssues = criticalCount > 0 || highCount > 0 || mediumCount > 0;
+			
+			// Update tray icon to show notification state
+			updateTrayIcon(hasIssues);
+			
+			// Send notification if critical issues found
 			if (criticalCount > 0) {
 				sendNotification(
 					'🚨 Critical Security Issues Detected',
@@ -416,10 +476,13 @@ app.whenReady().then(() => {
 	if (process.platform === 'darwin') {
 		app.dock?.hide();
 		app.setAboutPanelOptions({
-			applicationName: 'Sanches Security Monitor',
+			applicationName: 'Sanches',
 			applicationVersion: app.getVersion(),
 		});
 	}
+	
+	// Set app name
+	app.setName('Sanches');
 
 	createWindow();
 	createTray();

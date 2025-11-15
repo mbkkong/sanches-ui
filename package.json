@@ -1,14 +1,16 @@
 {
-	"name": "sanches-ui",
+	"name": "sanches",
 	"version": "1.0.0",
-	"description": "Electron app with real-time notifications",
+	"description": "Electron app with real-time security monitoring",
 	"main": "dist/main.js",
 	"scripts": {
 		"start": "npm run build && electron .",
 		"dev": "concurrently \"npm run build:watch\" \"npm run electron:dev\"",
-		"build": "tsc",
-		"build:watch": "tsc --watch",
-		"electron:dev": "wait-on dist/main.js && electron . --remote-debugging-port=9222",
+		"build": "npm run build:renderer && npm run build:main",
+		"build:main": "tsc",
+		"build:renderer": "vite build",
+		"build:watch": "concurrently \"tsc --watch\" \"vite build --watch\"",
+		"electron:dev": "wait-on dist/main.js dist-react/index.html && electron . --remote-debugging-port=9222",
 		"package": "npm run build && electron-builder",
 		"package:mac": "npm run build && electron-builder --mac",
 		"package:win": "npm run build && electron-builder --win",
@@ -19,54 +21,67 @@
 	},
 	"keywords": [
 		"electron",
-		"notifications",
-		"real-time"
+		"security",
+		"monitoring",
+		"react"
 	],
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
 		"@biomejs/biome": "2.3.5",
-		"@types/node": "^22.10.1",
+		"@types/node": "^24.10.1",
+		"@types/react": "^19.2.5",
+		"@types/react-dom": "^19.2.3",
 		"@types/ws": "^8.18.1",
+		"@vitejs/plugin-react": "^5.1.1",
 		"concurrently": "^9.1.0",
 		"electron": "^39.2.0",
-		"electron-builder": "^25.1.8",
+		"electron-builder": "^26.0.12",
 		"typescript": "^5.7.2",
-		"wait-on": "^8.0.1"
+		"vite": "^7.2.2",
+		"wait-on": "^9.0.3"
 	},
 	"dependencies": {
-		"electron-store": "^10.0.0",
+		"electron-store": "^11.0.2",
+		"react": "^19.2.0",
+		"react-dom": "^19.2.0",
 		"ws": "^8.18.0"
 	},
 	"build": {
-		"appId": "com.sanches.electron-app",
-		"productName": "Sanches Notifications",
+		"appId": "com.sanches.app",
+		"productName": "Sanches",
 		"directories": {
-			"output": "release"
+			"output": "release",
+			"buildResources": "assets"
 		},
 		"files": [
 			"dist/**/*",
+			"dist-react/**/*",
 			"assets/**/*",
+			"sanches",
 			"package.json"
+		],
+		"extraFiles": [
+			{
+				"from": "sanches",
+				"to": "Resources/sanches",
+				"filter": [
+					"**/*"
+				]
+			}
 		],
 		"mac": {
 			"category": "public.app-category.utilities",
-			"target": [
-				"dmg",
-				"zip"
-			]
+			"target": "zip",
+			"icon": "assets/sanches.png",
+			"identity": null,
+			"type": "distribution"
 		},
 		"win": {
-			"target": [
-				"nsis",
-				"portable"
-			]
+			"target": "nsis"
 		},
 		"linux": {
-			"target": [
-				"AppImage",
-				"deb"
-			],
+			"target": "AppImage",
 			"category": "Utility"
 		}
 	}

@@ -14,7 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	getProjects: () => ipcRenderer.invoke('get-projects'),
 
-	addProject: (project: any) => ipcRenderer.invoke('add-project', project),
+	addProject: (projectPath: string) => ipcRenderer.invoke('add-project', projectPath),
 
 	deleteProject: (projectId: string) => ipcRenderer.invoke('delete-project', projectId),
 
@@ -43,7 +43,7 @@ export interface ElectronAPI {
 	saveSettings: (settings: any) => Promise<{ success: boolean }>;
 	runScan: () => Promise<any>;
 	getProjects: () => Promise<any>;
-	addProject: (project: any) => Promise<any>;
+	addProject: (projectPath: string) => Promise<any>;
 	deleteProject: (projectId: string) => Promise<any>;
 	setActiveProject: (projectId: string) => Promise<any>;
 	getGlobalWatch: () => Promise<boolean>;
