@@ -1,4 +1,8 @@
 import React from 'react';
+import { Shield, PlayCircle, Activity } from 'lucide-react';
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { Switch } from './ui/switch';
 
 interface HeaderProps {
 	globalWatchEnabled: boolean;
@@ -14,55 +18,47 @@ export const Header: React.FC<HeaderProps> = ({
 	lastScanTime,
 }) => {
 	return (
-		<header className="relative border-b border-cyber-accent/30 bg-cyber-surface/50 backdrop-blur-sm">
-			<div className="scan-line" />
-			<div className="px-4 py-3">
-				<div className="flex items-center justify-between mb-2">
-					<div className="flex items-center gap-2">
-						<div className="w-8 h-8 bg-cyber-accent/10 rounded-lg flex items-center justify-center border border-cyber-accent/30">
-							<span className="text-lg glow-text">🛡️</span>
+		<header className="border-b bg-card">
+			<div className="px-6 py-4">
+				<div className="flex items-center justify-between mb-4">
+					<div className="flex items-center gap-3">
+						<div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary">
+							<Shield className="w-6 h-6 text-primary-foreground" />
 						</div>
 						<div>
-							<h1 className="text-lg font-bold glow-text text-cyber-accent">SANCHES</h1>
-							<p className="text-xs text-cyber-text/60">Security Monitor</p>
+							<h1 className="text-xl font-bold">Sanches</h1>
+							<p className="text-sm text-muted-foreground">Security Monitor</p>
 						</div>
 					</div>
 
-					<button
-						onClick={onRunScan}
-						className="px-3 py-1.5 bg-cyber-accent/20 border border-cyber-accent/50 rounded-lg hover:bg-cyber-accent/30 transition-all text-cyber-accent text-xs font-semibold"
-					>
-						⚡ Scan
-					</button>
+					<Button onClick={onRunScan} size="default">
+						<PlayCircle className="w-4 h-4" />
+						Run Scan
+					</Button>
 				</div>
 
-				<div className="flex items-center gap-2 text-xs">
-					<div className="flex items-center gap-1">
-						<div
-							className={`w-1.5 h-1.5 rounded-full ${
-								globalWatchEnabled ? 'bg-cyber-accent card-glow' : 'bg-cyber-danger'
-							}`}
-						/>
-						<span className="text-cyber-text/80">
+				<div className="flex items-center gap-4">
+					<div className="flex items-center gap-2">
+						<Activity className={`w-4 h-4 ${globalWatchEnabled ? 'text-green-500' : 'text-destructive'}`} />
+						<Badge variant={globalWatchEnabled ? 'default' : 'secondary'}>
 							{globalWatchEnabled ? 'Active' : 'Stopped'}
-						</span>
+						</Badge>
 					</div>
-					<span className="text-cyber-text/40">•</span>
-					<span className="text-cyber-text/60">{lastScanTime}</span>
-					<span className="text-cyber-text/40">•</span>
-					<button
-						onClick={onToggleWatch}
-						className={`px-2 py-0.5 border rounded hover:bg-opacity-30 transition-all font-semibold ${
-							globalWatchEnabled
-								? 'bg-cyber-accent/20 border-cyber-accent/50 text-cyber-accent'
-								: 'bg-cyber-danger/20 border-cyber-danger/50 text-cyber-danger'
-						}`}
-					>
-						Watch: {globalWatchEnabled ? 'ON' : 'OFF'}
-					</button>
+					<span className="text-muted-foreground">•</span>
+					<span className="text-sm text-muted-foreground">Last scan: {lastScanTime}</span>
+					<span className="text-muted-foreground">•</span>
+					<div className="flex items-center gap-2">
+						<Switch
+							checked={globalWatchEnabled}
+							onCheckedChange={onToggleWatch}
+							id="global-watch"
+						/>
+						<label htmlFor="global-watch" className="text-sm font-medium">
+							Watch Mode
+						</label>
+					</div>
 				</div>
 			</div>
 		</header>
 	);
 };
-

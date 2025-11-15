@@ -51,6 +51,8 @@ function createWindow(): void {
 			preload: path.join(__dirname, 'preload.js'),
 			nodeIntegration: false,
 			contextIsolation: true,
+			sandbox: true,
+			webSecurity: true,
 		},
 		backgroundColor: '#0a0e27',
 		skipTaskbar: false, // Show in dock

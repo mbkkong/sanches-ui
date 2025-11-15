@@ -1,5 +1,17 @@
 import React from 'react';
+import { Trash2, FolderOpen } from 'lucide-react';
 import type { Project } from '../types';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { Card, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Switch } from './ui/switch';
 
 interface ManageProjectsModalProps {
 	isOpen: boolean;
@@ -18,8 +30,6 @@ export const ManageProjectsModal: React.FC<ManageProjectsModalProps> = ({
 	onDelete,
 	onToggleWatch,
 }) => {
-	if (!isOpen) return null;
-
 	const handleDelete = (projectId: string, projectName: string) => {
 		if (confirm(`Are you sure you want to delete ${projectName}?`)) {
 			onDelete(projectId);
@@ -27,73 +37,68 @@ export const ManageProjectsModal: React.FC<ManageProjectsModalProps> = ({
 	};
 
 	return (
-		<div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-			<div className="bg-cyber-surface border border-cyber-accent/30 rounded-lg p-4 w-96">
-				<h3 className="text-lg font-bold text-cyber-accent mb-3">Manage Projects</h3>
-				<div className="space-y-2 max-h-64 overflow-y-auto mb-4">
+		<Dialog open={isOpen} onOpenChange={onClose}>
+			<DialogContent className="max-w-2xl">
+				<DialogHeader>
+					<DialogTitle>Manage Projects</DialogTitle>
+					<DialogDescription>
+						Configure your projects, enable/disable watching, and remove projects you no longer need.
+					</DialogDescription>
+				</DialogHeader>
+				<div className="space-y-3 max-h-96 overflow-y-auto py-4">
 					{projects.length === 0 ? (
-						<p className="text-cyber-text/60 text-sm text-center py-4">No projects yet</p>
+						<div className="text-center py-8 text-muted-foreground">
+							<FolderOpen className="w-12 h-12 mx-auto mb-2 opacity-50" />
+							<p>No projects yet</p>
+						</div>
 					) : (
 						projects.map((project) => (
-							<div
+							<Card
 								key={project.id}
-								className={`bg-cyber-bg border ${
-									project.id === activeProjectId
-										? 'border-cyber-accent'
-										: 'border-cyber-text/20'
-								} rounded p-2`}
+								className={project.id === activeProjectId ? 'border-primary' : ''}
 							>
-								<div className="flex items-center justify-between mb-2">
-									<div className="flex-1 min-w-0">
-										<p
-											className={`text-sm font-semibold ${
-												project.id === activeProjectId
-													? 'text-cyber-accent'
-													: 'text-cyber-text'
-											}`}
+								<CardContent className="p-4">
+									<div className="flex items-start justify-between gap-4">
+										<div className="flex-1 min-w-0">
+											<div className="flex items-center gap-2 mb-1">
+												<h3 className="font-semibold">{project.name}</h3>
+												{project.id === activeProjectId && (
+													<Badge variant="default" className="text-xs">
+														Active
+													</Badge>
+												)}
+											</div>
+											<p className="text-sm text-muted-foreground font-mono truncate">
+												{project.path}
+											</p>
+											<div className="flex items-center gap-2 mt-3">
+												<Switch
+													id={`watch-${project.id}`}
+													checked={project.watchEnabled}
+													onCheckedChange={(checked) => onToggleWatch(project.id, checked)}
+												/>
+												<label
+													htmlFor={`watch-${project.id}`}
+													className="text-sm font-medium cursor-pointer"
+												>
+													Watch Enabled
+												</label>
+											</div>
+										</div>
+										<Button
+											variant="destructive"
+											size="icon"
+											onClick={() => handleDelete(project.id, project.name)}
 										>
-											{project.name}
-										</p>
-										<p className="text-xs text-cyber-text/60 font-mono truncate">
-											{project.path}
-										</p>
+											<Trash2 className="w-4 h-4" />
+										</Button>
 									</div>
-									<button
-										onClick={() => handleDelete(project.id, project.name)}
-										className="ml-2 px-2 py-1 bg-cyber-danger/20 border border-cyber-danger/30 rounded text-cyber-danger text-xs hover:bg-cyber-danger/30"
-									>
-										Delete
-									</button>
-								</div>
-								<div className="flex items-center gap-2">
-									<label className="flex items-center gap-2 cursor-pointer flex-1">
-										<input
-											type="checkbox"
-											checked={project.watchEnabled}
-											onChange={(e) => onToggleWatch(project.id, e.target.checked)}
-											className="w-4 h-4 bg-cyber-bg border border-cyber-accent/30 rounded checked:bg-cyber-accent cursor-pointer"
-										/>
-										<span
-											className={`text-xs ${
-												project.watchEnabled ? 'text-cyber-accent' : 'text-cyber-text/60'
-											}`}
-										>
-											Watch Enabled
-										</span>
-									</label>
-								</div>
-							</div>
+								</CardContent>
+							</Card>
 						))
 					)}
 				</div>
-				<button
-					onClick={onClose}
-					className="w-full px-3 py-1.5 bg-cyber-surface border border-cyber-text/20 rounded hover:bg-cyber-text/10 text-cyber-text text-sm"
-				>
-					Close
-				</button>
-			</div>
-		</div>
+			</DialogContent>
+		</Dialog>
 	);
 };
-

@@ -56,7 +56,7 @@ export const App: React.FC = () => {
 	};
 
 	return (
-		<div className="relative h-screen flex flex-col">
+		<div className="dark h-screen flex flex-col bg-background">
 			<Header
 				globalWatchEnabled={globalWatchEnabled}
 				onToggleWatch={handleToggleWatch}
@@ -65,7 +65,7 @@ export const App: React.FC = () => {
 			/>
 
 			<main className="flex-1 overflow-hidden">
-				<div className="px-4 py-3 h-full flex flex-col gap-3">
+				<div className="px-6 py-4 h-full flex flex-col gap-4">
 					<StatsCards
 						criticalCount={scanResult?.critical.length || 0}
 						warningCount={scanResult?.warning.length || 0}
@@ -101,4 +101,3 @@ export const App: React.FC = () => {
 		</div>
 	);
 };
-
