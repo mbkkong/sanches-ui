@@ -18,6 +18,7 @@ export const App: React.FC = () => {
 		globalWatchEnabled,
 		scanResult,
 		apiKey,
+		notificationsEnabled,
 		addProject,
 		deleteProject,
 		setActiveProject,
@@ -118,6 +119,7 @@ export const App: React.FC = () => {
 				onClose={() => setIsSettingsOpen(false)}
 				onSave={saveApiKey}
 				currentApiKey={apiKey}
+				notificationsEnabled={notificationsEnabled}
 			/>
 
 			<AddProjectModal

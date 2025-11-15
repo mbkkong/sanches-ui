@@ -196,6 +196,13 @@ function showWindow(): void {
 
 // Send notification function
 function sendNotification(title: string, body: string, options?: Partial<Notification>): void {
+	// Check if notifications are enabled
+	const settings = (store as any).get('settings', { notifications: true }) as any;
+	if (!settings.notifications) {
+		console.log('Notifications are disabled');
+		return;
+	}
+
 	if (!Notification.isSupported()) {
 		console.error('Notifications are not supported on this system');
 		return;

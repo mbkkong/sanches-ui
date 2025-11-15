@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Key } from 'lucide-react';
+import { Settings, Key, Bell, BellOff } from 'lucide-react';
 import {
 	Dialog,
 	DialogContent,
@@ -10,12 +10,14 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Switch } from './ui/switch';
 
 interface SettingsModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSave: (apiKey: string) => Promise<void>;
+	onSave: (apiKey: string, notificationsEnabled: boolean) => Promise<void>;
 	currentApiKey?: string;
+	notificationsEnabled?: boolean;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -23,17 +25,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 	onClose,
 	onSave,
 	currentApiKey,
+	notificationsEnabled = true,
 }) => {
 	const [apiKey, setApiKey] = useState('');
+	const [notifications, setNotifications] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState('');
 
 	useEffect(() => {
 		if (isOpen) {
 			setApiKey(currentApiKey || '');
+			setNotifications(notificationsEnabled);
 			setError('');
 		}
-	}, [isOpen, currentApiKey]);
+	}, [isOpen, currentApiKey, notificationsEnabled]);
 
 	const handleSave = async () => {
 		if (!apiKey.trim()) {
@@ -44,10 +49,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 		setIsLoading(true);
 		setError('');
 		try {
-			await onSave(apiKey.trim());
+			await onSave(apiKey.trim(), notifications);
 			onClose();
 		} catch (err) {
-			setError('Failed to save API key');
+			setError('Failed to save settings');
 		} finally {
 			setIsLoading(false);
 		}
@@ -69,6 +74,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 				</DialogHeader>
 
 				<div className="space-y-4 py-4">
+					{/* API Key Section */}
 					<div className="space-y-3 p-4 bg-slate-50 rounded-lg border-2 border-slate-200">
 						<div className="flex items-center gap-2 mb-2">
 							<Key className="w-4 h-4 text-slate-700" />
@@ -98,6 +104,32 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 							<p className="text-xs font-medium text-blue-700">
 								Your API key is stored securely on your device and never shared
 							</p>
+						</div>
+					</div>
+
+					{/* Notifications Section */}
+					<div className="space-y-3 p-4 bg-slate-50 rounded-lg border-2 border-slate-200">
+						<div className="flex items-center justify-between">
+							<div className="flex items-center gap-3">
+								{notifications ? (
+									<Bell className="w-5 h-5 text-slate-700" />
+								) : (
+									<BellOff className="w-5 h-5 text-slate-700" />
+								)}
+								<div>
+									<label htmlFor="notifications-toggle" className="text-sm font-semibold text-slate-900 block">
+										Desktop Notifications
+									</label>
+									<p className="text-xs text-slate-600 mt-0.5">
+										Get alerted when security issues are detected
+									</p>
+								</div>
+							</div>
+							<Switch
+								id="notifications-toggle"
+								checked={notifications}
+								onCheckedChange={setNotifications}
+							/>
 						</div>
 					</div>
 				</div>

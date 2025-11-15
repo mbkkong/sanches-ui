@@ -12,6 +12,8 @@ interface ElectronAPI {
 	toggleProjectWatch: (projectId: string, enabled: boolean) => Promise<{ success: boolean }>;
 	getApiKey: () => Promise<string | undefined>;
 	saveApiKey: (apiKey: string) => Promise<{ success: boolean }>;
+	getSettings: () => Promise<{ notifications: boolean; sound: boolean; startup: boolean }>;
+	saveSettings: (settings: { notifications: boolean; sound: boolean; startup: boolean }) => Promise<{ success: boolean }>;
 	onScanResult: (callback: (data: ScanResult) => void) => void;
 }
 
@@ -27,6 +29,7 @@ export const useElectron = () => {
 	const [globalWatchEnabled, setGlobalWatchEnabled] = useState(true);
 	const [scanResult, setScanResult] = useState<ScanResult | null>(null);
 	const [apiKey, setApiKey] = useState<string | undefined>();
+	const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
 	const loadProjects = useCallback(async () => {
 		const { projects, activeProjectId } = await window.electronAPI.getProjects();
@@ -44,9 +47,22 @@ export const useElectron = () => {
 		setApiKey(key);
 	}, []);
 
-	const saveApiKey = useCallback(async (key: string) => {
+	const loadSettings = useCallback(async () => {
+		const settings = await window.electronAPI.getSettings();
+		setNotificationsEnabled(settings.notifications);
+	}, []);
+
+	const saveApiKey = useCallback(async (key: string, notifications: boolean) => {
 		await window.electronAPI.saveApiKey(key);
 		setApiKey(key);
+		
+		// Save notification settings
+		const currentSettings = await window.electronAPI.getSettings();
+		await window.electronAPI.saveSettings({
+			...currentSettings,
+			notifications,
+		});
+		setNotificationsEnabled(notifications);
 	}, []);
 
 	const runScan = useCallback(async () => {
@@ -86,6 +102,7 @@ export const useElectron = () => {
 		loadProjects();
 		loadGlobalWatch();
 		loadApiKey();
+		loadSettings();
 		runScan();
 
 		window.electronAPI.onScanResult((data) => {
@@ -99,6 +116,7 @@ export const useElectron = () => {
 		globalWatchEnabled,
 		scanResult,
 		apiKey,
+		notificationsEnabled,
 		addProject,
 		deleteProject,
 		setActiveProject,
