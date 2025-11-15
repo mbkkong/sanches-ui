@@ -115,19 +115,24 @@ function createWindow(): void {
 // Create system tray for menu bar
 function createTray(): void {
 	// Create a template icon for the menu bar
-	// macOS will automatically use @2x versions for retina displays
-	const iconPath = app.isPackaged
-		? path.join(process.resourcesPath, 'assets', 'sanchesDark.png')
-		: path.join(__dirname, '..', 'assets', 'sanchesDark.png');
+	// Remove .png extension to let Electron automatically find @2x versions
+	const iconBasePath = app.isPackaged
+		? path.join(process.resourcesPath, 'assets', 'sanchesDark')
+		: path.join(__dirname, '..', 'assets', 'sanchesDark');
 	
-	console.log('Tray icon path:', iconPath);
-	const icon = nativeImage.createFromPath(iconPath);
+	console.log('Tray icon base path:', iconBasePath);
+	
+	// Create native image with automatic @2x detection
+	const icon = nativeImage.createFromPath(iconBasePath + '.png');
 	
 	if (icon.isEmpty()) {
-		console.error('Failed to load tray icon from:', iconPath);
+		console.error('Failed to load tray icon from:', iconBasePath);
+	} else {
+		console.log('Tray icon loaded successfully, size:', icon.getSize());
 	}
 	
-	icon.setTemplateImage(true); // This makes it adapt to light/dark menu bar
+	// Set as template image for proper macOS menubar rendering
+	icon.setTemplateImage(true);
 
 	tray = new Tray(icon);
 	tray.setToolTip('Sanches - Security Monitor');
@@ -172,18 +177,20 @@ function createTray(): void {
 function updateTrayIcon(hasIssues: boolean): void {
 	if (!tray) return;
 
-	const iconName = hasIssues ? 'sanchesUpdateDark.png' : 'sanchesDark.png';
+	const iconBaseName = hasIssues ? 'sanchesUpdateDark' : 'sanchesDark';
 	const iconPath = app.isPackaged
-		? path.join(process.resourcesPath, 'assets', iconName)
-		: path.join(__dirname, '..', 'assets', iconName);
+		? path.join(process.resourcesPath, 'assets', iconBaseName)
+		: path.join(__dirname, '..', 'assets', iconBaseName);
 	
-	const icon = nativeImage.createFromPath(iconPath);
+	// Create image with automatic @2x detection
+	const icon = nativeImage.createFromPath(iconPath + '.png');
 	
 	if (icon.isEmpty()) {
 		console.error('Failed to load update icon from:', iconPath);
 		return;
 	}
 	
+	console.log(`Tray icon updated (${iconBaseName}), size:`, icon.getSize());
 	icon.setTemplateImage(true);
 	tray.setImage(icon);
 }

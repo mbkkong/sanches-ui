@@ -11,7 +11,7 @@
 		"build:renderer": "vite build",
 		"build:watch": "concurrently \"tsc --watch\" \"vite build --watch\"",
 		"electron:dev": "wait-on dist/main.js dist-react/index.html && electron . --remote-debugging-port=9222",
-		"setup:python": "./scripts/setup-python.sh",
+		"setup:python": "./cli/setup-python.sh",
 		"prepackage": "npm run setup:python",
 		"package": "npm run build && electron-builder",
 		"package:mac": "npm run build && electron-builder --mac",

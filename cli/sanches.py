@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 """
 Sanches - A coding assist tool that reads files and sends them to Gemini API
+
+To run this script, use the virtual environment Python:
+    ./cli/venv/bin/python ./cli/sanches.py --dir="path" --api-key="key"
 """
 import argparse
 import json
@@ -164,11 +168,6 @@ class Sanches:
         - Cloud provider keys (AWS, GCP, Azure, etc.)
         - Anything that appears to be a secret, even if you are not 100% sure (mark appropriately in severity)
 
-        - Dependency issues:
-        - Known vulnerable or obviously outdated packages (if version information is present)
-        - Clearly insecure or deprecated libraries and frameworks
-        - Suspicious dependencies that are commonly used for malicious purposes
-
         - Configuration issues:
         - Insecure defaults in config files (YAML, JSON, .env, etc.)
         - Debug mode enabled in production-like configs
@@ -257,18 +256,9 @@ class Sanches:
     def check_dependencies(self, path: str) -> List[Dict[str, Any]]:
         """Check dependencies for vulnerabilities using dependency_checker"""
         try:
+            # check_dependencies now returns vulnerabilities directly in the correct format
             vulnerabilities = check_dependencies(path)
-            
-            # Format vulnerabilities into the expected output format
-            formatted_deps = []
-            for vuln in vulnerabilities:
-                formatted_deps.append({
-                    'package_type': vuln.get('package_manager', 'unknown'),
-                    'package': vuln.get('package_name', 'unknown'),
-                    'description': f"{vuln.get('cve_id', 'Unknown CVE')}: {vuln.get('description', 'No description')} (Severity: {vuln.get('severity', 'Unknown')}, CVSS: {vuln.get('cvss_score', 'N/A')})"
-                })
-            
-            return formatted_deps
+            return vulnerabilities
         except Exception:
             return []
 
