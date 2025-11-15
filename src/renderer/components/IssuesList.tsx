@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { AlertCircle, AlertTriangle, Package, Copy, CheckCircle2, FileText, Sparkles } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { AlertCircle, AlertTriangle, Package, Copy, CheckCircle2, FileText, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { IssueType, IssueWithType, DependencyIssue } from '../types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
@@ -7,6 +7,7 @@ import { Button } from './ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { Input } from './ui/input';
 
 interface IssuesListProps {
 	issues: IssueWithType[];
@@ -17,9 +18,79 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 	const [filter, setFilter] = useState<'all' | IssueType>('all');
 	const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 	const [promptCopied, setPromptCopied] = useState(false);
+	const [searchQuery, setSearchQuery] = useState('');
+	const [currentPage, setCurrentPage] = useState(1);
+	const itemsPerPage = 10;
 
-	const filteredIssues = issues.filter((issue) => filter === 'all' || issue.type === filter);
-	const filteredDeps = filter === 'all' || filter === 'dependencies' ? dependencies : [];
+	// Filter and search logic
+	const { filteredIssues, filteredDeps, totalItems } = useMemo(() => {
+		// Filter by type
+		let issues_filtered = issues.filter((issue) => filter === 'all' || issue.type === filter);
+		let deps_filtered = filter === 'all' || filter === 'dependencies' ? dependencies : [];
+
+		// Search filter
+		if (searchQuery.trim()) {
+			const query = searchQuery.toLowerCase();
+			issues_filtered = issues_filtered.filter(
+				(issue) =>
+					issue.description?.toLowerCase().includes(query) ||
+					issue.file?.toLowerCase().includes(query) ||
+					issue.file_name?.toLowerCase().includes(query)
+			);
+			deps_filtered = deps_filtered.filter(
+				(dep) =>
+					dep.description?.toLowerCase().includes(query) ||
+					dep.package?.toLowerCase().includes(query) ||
+					dep.package_type?.toLowerCase().includes(query)
+			);
+		}
+
+		return {
+			filteredIssues: issues_filtered,
+			filteredDeps: deps_filtered,
+			totalItems: issues_filtered.length + deps_filtered.length,
+		};
+	}, [issues, dependencies, filter, searchQuery]);
+
+	// Pagination logic
+	const { paginatedIssues, paginatedDeps, totalPages, showPagination } = useMemo(() => {
+		const total = filteredIssues.length + filteredDeps.length;
+		const totalPgs = Math.ceil(total / itemsPerPage);
+		const showPag = total > itemsPerPage;
+
+		if (!showPag) {
+			return {
+				paginatedIssues: filteredIssues,
+				paginatedDeps: filteredDeps,
+				totalPages: 1,
+				showPagination: false,
+			};
+		}
+
+		const startIdx = (currentPage - 1) * itemsPerPage;
+		const endIdx = startIdx + itemsPerPage;
+
+		// Combine issues and deps for pagination
+		const allItems = [...filteredIssues, ...filteredDeps];
+		const paginatedItems = allItems.slice(startIdx, endIdx);
+
+		// Split back into issues and deps
+		const pagIssues = paginatedItems.filter((item) => 'type' in item) as IssueWithType[];
+		const pagDeps = paginatedItems.filter((item) => 'package' in item) as DependencyIssue[];
+
+		return {
+			paginatedIssues: pagIssues,
+			paginatedDeps: pagDeps,
+			totalPages: totalPgs,
+			showPagination: true,
+		};
+	}, [filteredIssues, filteredDeps, currentPage]);
+
+	// Reset to page 1 when filter or search changes
+	// biome-ignore lint/correctness/useExhaustiveDependencies: Only reset on filter/search changes
+	React.useEffect(() => {
+		setCurrentPage(1);
+	}, [filter, searchQuery]);
 
 	const copyToClipboard = (text: string, index: string) => {
 		navigator.clipboard.writeText(text).then(() => {
@@ -80,17 +151,6 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 		}
 	};
 
-	const getIssueBadgeVariant = (type: IssueType) => {
-		switch (type) {
-			case 'critical':
-				return 'destructive';
-			case 'warning':
-				return 'secondary';
-			case 'dependencies':
-				return 'default';
-		}
-	};
-
 	const criticalCount = issues.filter((i) => i.type === 'critical').length;
 	const warningCount = issues.filter((i) => i.type === 'warning').length;
 	const depsCount = dependencies.length;
@@ -102,9 +162,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex items-center gap-2">
 						<h2 className="text-lg font-semibold text-slate-900">Issues</h2>
-						{(filteredIssues.length > 0 || filteredDeps.length > 0) && (
+						{totalItems > 0 && (
 							<Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border-slate-200">
-								{filteredIssues.length + filteredDeps.length} total
+								{totalItems} {searchQuery ? 'found' : 'total'}
 							</Badge>
 						)}
 					</div>
@@ -123,7 +183,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 									</>
 								) : (
 									<>
-										<Sparkles className="w-4 h-4 mr-2" />
+										<Sparkles className="w-6 h-6 mr-2" />
 										Generate AI Fix Prompt
 									</>
 								)}
@@ -146,17 +206,31 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 					</div>
 				</div>
 
+				{/* Search Bar */}
+				<div className="mb-4">
+					<div className="relative">
+						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+						<Input
+							type="text"
+							placeholder="Search issues by description, file name, or package..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="pl-10 bg-white border-slate-200 focus:border-blue-400 focus:ring-blue-400"
+						/>
+					</div>
+				</div>
+
 				<Separator className="mb-4" />
 
-				<TabsContent value={filter} className="flex-1 mt-0">
-					<ScrollArea className="h-full pr-4">
-						{filteredIssues.length === 0 && filteredDeps.length === 0 ? (
+				<TabsContent value={filter} className="flex-1 mt-0 flex flex-col">
+					<ScrollArea className="flex-1 pr-4">
+						{paginatedIssues.length === 0 && paginatedDeps.length === 0 ? (
 							<Card className="border-dashed border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white shadow-sm">
 								<CardContent className="flex flex-col items-center justify-center py-20">
 									<div className="relative mb-6">
 										<div className="absolute inset-0 bg-emerald-200/40 blur-2xl rounded-full" />
 										<CheckCircle2 className="w-20 h-20 text-emerald-600 relative" />
-										<Sparkles className="w-7 h-7 text-emerald-500 absolute -top-2 -right-2 animate-pulse" />
+										<Sparkles className="w-10 h-10 text-emerald-500 absolute -top-2 -right-2 animate-pulse" />
 									</div>
 									<h3 className="text-2xl font-bold mb-2 text-slate-900">All Clear!</h3>
 									<p className="text-slate-600 text-base">
@@ -166,9 +240,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 							</Card>
 						) : (
 							<div className="space-y-4 pb-4">
-								{filteredIssues.map((issue, idx) => (
+								{paginatedIssues.map((issue, idx) => (
 									<Card 
-										key={idx} 
+										key={`issue-${currentPage}-${idx}-${issue.file}`} 
 										className={`
 											hover:shadow-lg transition-all shadow-sm
 											border-l-4 
@@ -230,9 +304,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 										</CardContent>
 									</Card>
 								))}
-								{filteredDeps.map((dep, idx) => (
+								{paginatedDeps.map((dep, idx) => (
 									<Card 
-										key={`dep-${idx}`} 
+										key={`dep-${currentPage}-${idx}-${dep.package}`} 
 										className="hover:shadow-lg transition-all shadow-sm border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white border-blue-200 animate-slide-in"
 									>
 										<CardHeader className="pb-3">
@@ -265,6 +339,73 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 							</div>
 						)}
 					</ScrollArea>
+
+					{/* Pagination Controls */}
+					{showPagination && (
+						<div className="mt-4 flex items-center justify-between border-t pt-4">
+							<div className="text-sm text-slate-600">
+								Showing {(currentPage - 1) * itemsPerPage + 1} to{' '}
+								{Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} issues
+							</div>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+									disabled={currentPage === 1}
+									className="border-slate-200"
+								>
+									<ChevronLeft className="w-4 h-4 mr-1" />
+									Previous
+								</Button>
+								<div className="flex items-center gap-1">
+									{Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+										// Show first page, last page, current page, and pages around current
+										const showPage =
+											page === 1 ||
+											page === totalPages ||
+											(page >= currentPage - 1 && page <= currentPage + 1);
+										
+										if (!showPage && page === currentPage - 2) {
+											return <span key={page} className="px-2 text-slate-400">...</span>;
+										}
+										if (!showPage && page === currentPage + 2) {
+											return <span key={page} className="px-2 text-slate-400">...</span>;
+										}
+										if (!showPage) {
+											return null;
+										}
+
+										return (
+											<Button
+												key={page}
+												variant={currentPage === page ? 'default' : 'outline'}
+												size="sm"
+												onClick={() => setCurrentPage(page)}
+												className={
+													currentPage === page
+														? 'bg-blue-600 hover:bg-blue-700 text-white'
+														: 'border-slate-200'
+												}
+											>
+												{page}
+											</Button>
+										);
+									})}
+								</div>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+									disabled={currentPage === totalPages}
+									className="border-slate-200"
+								>
+									Next
+									<ChevronRight className="w-4 h-4 ml-1" />
+								</Button>
+							</div>
+						</div>
+					)}
 				</TabsContent>
 			</Tabs>
 		</div>
