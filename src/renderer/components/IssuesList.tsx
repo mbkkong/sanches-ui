@@ -143,11 +143,11 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 	const getIssueIcon = (type: IssueType) => {
 		switch (type) {
 			case 'critical':
-				return <AlertCircle className="w-5 h-5 text-red-600" />;
+				return <AlertCircle className="w-3.5 h-3.5 text-red-600" />;
 			case 'warning':
-				return <AlertTriangle className="w-5 h-5 text-amber-600" />;
+				return <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />;
 			case 'dependencies':
-				return <Package className="w-5 h-5 text-blue-600" />;
+				return <Package className="w-3.5 h-3.5 text-blue-600" />;
 		}
 	};
 
@@ -159,87 +159,87 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 	return (
 		<div className="flex-1 overflow-hidden flex flex-col animate-fade-in min-h-0">
 			<Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)} className="flex-1 flex flex-col min-h-0">
-				<div className="flex items-center justify-between mb-4">
-					<div className="flex items-center gap-2">
-						<h2 className="text-lg font-semibold text-slate-900">Issues</h2>
+				<div className="flex items-center justify-between mb-2">
+					<div className="flex items-center gap-1.5">
+						<h2 className="text-sm font-semibold text-slate-900">Issues</h2>
 						{totalItems > 0 && (
-							<Badge variant="secondary" className="text-xs bg-slate-100 text-slate-700 border-slate-200">
+							<Badge variant="secondary" className="text-[10px] bg-slate-100 text-slate-700 border-slate-200 px-1.5 py-0">
 								{totalItems} {searchQuery ? 'found' : 'total'}
 							</Badge>
 						)}
 					</div>
-					<div className="flex items-center gap-3">
-						{hasRelevantIssues && (
-							<Button
-								onClick={generateAIFixPrompt}
-								size="sm"
-								variant="outline"
-								className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 text-purple-700 font-medium shadow-sm"
-							>
-								{promptCopied ? (
-									<>
-										<CheckCircle2 className="w-4 h-4 mr-2" />
-										Copied!
-									</>
-								) : (
-									<>
-										<Sparkles className="w-6 h-6 mr-2" />
-										Generate AI Fix Prompt
-									</>
-								)}
-							</Button>
-						)}
-						<TabsList className="bg-slate-100 p-1 border border-slate-200">
-							<TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
+					<div className="flex items-center gap-2">
+					{hasRelevantIssues && (
+						<Button
+							onClick={generateAIFixPrompt}
+							size="default"
+							variant="outline"
+							className="border-2 border-purple-400 bg-gradient-to-r from-purple-200 to-pink-200 hover:from-purple-300 hover:to-pink-300 text-purple-900 font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 text-sm h-10 px-4"
+						>
+							{promptCopied ? (
+								<>
+									<CheckCircle2 className="w-4 h-4 mr-2" />
+									Copied!
+								</>
+							) : (
+								<>
+									<Sparkles className="w-5 h-5 mr-2" />
+									Generate AI Fix Prompt
+								</>
+							)}
+						</Button>
+					)}
+						<TabsList className="bg-slate-100 p-0.5 border border-slate-200 h-8">
+							<TabsTrigger value="all" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
 								All
 							</TabsTrigger>
-							<TabsTrigger value="critical" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
-								Critical {criticalCount > 0 && <Badge className="ml-2 text-xs bg-red-100 text-red-700 border-red-200">{criticalCount}</Badge>}
+							<TabsTrigger value="critical" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
+								Critical {criticalCount > 0 && <Badge className="ml-1 text-[9px] bg-red-100 text-red-700 border-red-200 px-1 py-0">{criticalCount}</Badge>}
 							</TabsTrigger>
-							<TabsTrigger value="warning" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
-								Warnings {warningCount > 0 && <Badge className="ml-2 text-xs bg-amber-100 text-amber-700 border-amber-200">{warningCount}</Badge>}
+							<TabsTrigger value="warning" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
+								Warnings {warningCount > 0 && <Badge className="ml-1 text-[9px] bg-amber-100 text-amber-700 border-amber-200 px-1 py-0">{warningCount}</Badge>}
 							</TabsTrigger>
-							<TabsTrigger value="dependencies" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium">
-								Deps {depsCount > 0 && <Badge className="ml-2 text-xs bg-blue-100 text-blue-700 border-blue-200">{depsCount}</Badge>}
+							<TabsTrigger value="dependencies" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
+								Deps {depsCount > 0 && <Badge className="ml-1 text-[9px] bg-blue-100 text-blue-700 border-blue-200 px-1 py-0">{depsCount}</Badge>}
 							</TabsTrigger>
 						</TabsList>
 					</div>
 				</div>
 
 				{/* Search Bar */}
-				<div className="mb-4">
+				<div className="mb-2">
 					<div className="relative">
-						<Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+						<Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
 						<Input
 							type="text"
 							placeholder="Search issues by description, file name, or package..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-10 bg-white border-slate-200 focus:border-blue-400 focus:ring-blue-400"
+							className="pl-8 bg-white border-slate-200 focus:border-blue-400 focus:ring-blue-400 h-8 text-xs"
 						/>
 					</div>
 				</div>
 
-				<Separator className="mb-4" />
+				<Separator className="mb-2" />
 
 				<TabsContent value={filter} className="flex-1 mt-0 flex flex-col min-h-0">
 					<ScrollArea className="flex-1 pr-4 h-full">
 						{paginatedIssues.length === 0 && paginatedDeps.length === 0 ? (
 							<Card className="border-dashed border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white shadow-sm">
-								<CardContent className="flex flex-col items-center justify-center py-20">
-									<div className="relative mb-6">
-										<div className="absolute inset-0 bg-emerald-200/40 blur-2xl rounded-full" />
-										<CheckCircle2 className="w-20 h-20 text-emerald-600 relative" />
-										<Sparkles className="w-10 h-10 text-emerald-500 absolute -top-2 -right-2 animate-pulse" />
+								<CardContent className="flex flex-col items-center justify-center py-10 p-4">
+									<div className="relative mb-4">
+										<div className="absolute inset-0 bg-emerald-200/40 blur-xl rounded-full" />
+										<CheckCircle2 className="w-12 h-12 text-emerald-600 relative" />
+										<Sparkles className="w-6 h-6 text-emerald-500 absolute -top-1 -right-1 animate-pulse" />
 									</div>
-									<h3 className="text-2xl font-bold mb-2 text-slate-900">All Clear!</h3>
-									<p className="text-slate-600 text-base">
+									<h3 className="text-lg font-bold mb-1 text-slate-900">All Clear!</h3>
+									<p className="text-slate-600 text-xs">
 										No {filter === 'all' ? '' : filter} issues detected
 									</p>
 								</CardContent>
 							</Card>
 						) : (
-							<div className="space-y-4 pb-4">
+							<div className="space-y-2 pb-2">
 								{paginatedIssues.map((issue, idx) => (
 									<Card 
 										key={`issue-${currentPage}-${idx}-${issue.file}`} 
@@ -254,9 +254,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 											animate-slide-in
 										`}
 									>
-										<CardHeader className="pb-3">
-											<div className="flex items-start gap-3">
-												<div className={`p-2.5 rounded-xl border ${
+										<CardHeader className="pb-1.5 p-3">
+											<div className="flex items-start gap-2">
+												<div className={`p-1.5 rounded-lg border ${
 													issue.type === 'critical' ? 'bg-red-100 border-red-200' :
 													issue.type === 'warning' ? 'bg-amber-100 border-amber-200' :
 													'bg-blue-100 border-blue-200'
@@ -264,9 +264,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 													{getIssueIcon(issue.type)}
 												</div>
 												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-2">
+													<div className="flex items-center gap-1.5 mb-1">
 														<Badge 
-															className={`text-xs font-semibold ${
+															className={`text-[9px] font-semibold px-1.5 py-0 ${
 																issue.type === 'critical' ? 'bg-red-100 text-red-700 border-red-200' :
 																issue.type === 'warning' ? 'bg-amber-100 text-amber-700 border-amber-200' :
 																'bg-blue-100 text-blue-700 border-blue-200'
@@ -275,29 +275,29 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 															{issue.type.toUpperCase()}
 														</Badge>
 													</div>
-													<CardTitle className="text-base font-medium break-words leading-snug text-slate-900">
+													<CardTitle className="text-xs font-medium break-words leading-snug text-slate-900">
 														{issue.description || 'No description'}
 													</CardTitle>
 												</div>
 											</div>
 										</CardHeader>
-										<CardContent className="pt-0">
-											<div className="flex items-center gap-2 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
-												<FileText className="w-4 h-4 shrink-0 text-slate-500" />
-												<span className="truncate flex-1 text-sm text-slate-700 font-mono" title={issue.file}>
+										<CardContent className="pt-0 p-3">
+											<div className="flex items-center gap-1.5 p-1.5 rounded-md bg-slate-50 border border-slate-200">
+												<FileText className="w-3 h-3 shrink-0 text-slate-500" />
+												<span className="truncate flex-1 text-[11px] text-slate-700 font-mono" title={issue.file}>
 													{formatFilePath(issue.file || 'Unknown file')}
 												</span>
 												<Button
 													variant="ghost"
 													size="icon"
-													className="h-8 w-8 hover:bg-slate-100"
+													className="h-6 w-6 hover:bg-slate-100"
 													onClick={() => copyToClipboard(issue.file || '', `issue-${idx}`)}
 													title="Copy file path"
 												>
 													{copiedIndex === `issue-${idx}` ? (
-														<CheckCircle2 className="w-4 h-4 text-emerald-600" />
+														<CheckCircle2 className="w-3 h-3 text-emerald-600" />
 													) : (
-														<Copy className="w-4 h-4" />
+														<Copy className="w-3 h-3" />
 													)}
 												</Button>
 											</div>
@@ -309,28 +309,28 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 										key={`dep-${currentPage}-${idx}-${dep.package}`} 
 										className="hover:shadow-lg transition-all shadow-sm border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white border-blue-200 animate-slide-in"
 									>
-										<CardHeader className="pb-3">
-											<div className="flex items-start gap-3">
-												<div className="p-2.5 rounded-xl bg-blue-100 border border-blue-200">
+										<CardHeader className="pb-1.5 p-3">
+											<div className="flex items-start gap-2">
+												<div className="p-1.5 rounded-lg bg-blue-100 border border-blue-200">
 													{getIssueIcon('dependencies')}
 												</div>
 												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-2 mb-2 flex-wrap">
-														<Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold">
+													<div className="flex items-center gap-1.5 mb-1 flex-wrap">
+														<Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold text-[9px] px-1.5 py-0">
 															DEPENDENCY
 														</Badge>
-														<Badge variant="outline" className="text-xs border-slate-200 text-slate-600">
+														<Badge variant="outline" className="text-[9px] border-slate-200 text-slate-600 px-1.5 py-0">
 															{dep.package_type || 'N/A'}
 														</Badge>
 													</div>
-													<CardTitle className="text-base font-semibold text-blue-700 break-words">
+													<CardTitle className="text-xs font-semibold text-blue-700 break-words">
 														{dep.package || 'Unknown Package'}
 													</CardTitle>
 												</div>
 											</div>
 										</CardHeader>
-										<CardContent className="pt-0">
-											<CardDescription className="break-words leading-relaxed text-slate-600">
+										<CardContent className="pt-0 p-3">
+											<CardDescription className="break-words leading-relaxed text-slate-600 text-[11px]">
 												{dep.description || 'No description'}
 											</CardDescription>
 										</CardContent>
