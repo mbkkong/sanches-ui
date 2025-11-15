@@ -1,1 +1,31 @@
-#!/path/to/interpreter
+#!/bin/bash
+
+echo '{
+  "pwd": "'"$(pwd)"'",
+  "critical": [
+    {
+      "file_name": "config.py",
+      "file": "/lalal/bla/config.py",
+      "description": "Hardcoded credentials detected. Move to environment variables."
+    },
+    {
+      "file_name": "api_keys.js",
+      "file": "/lalal/bla/api_keys.js",
+      "description": "API Key is exposed. Please add it to .gitignore"
+    }
+  ],
+  "warning": [
+    {
+      "file_name": "deprecated_function.py",
+      "file": "/lalal/bla/deprecated_function.py",
+      "description": "Using deprecated function. Update to the latest version."
+    }
+  ],
+  "dependencies": [
+    {
+      "package_type": "npm",
+      "package": "lodash",
+      "description": "Outdated version detected. Update to version 4.17.21 to fix security vulnerabilities."
+    }
+  ]
+}'

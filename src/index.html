@@ -3,202 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
-  <title>Sanches - Real-Time Notifications</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com;">
+  <title>Sanches - Security Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            cyber: {
+              bg: '#0a0e27',
+              surface: '#141b3d',
+              accent: '#00ff9f',
+              danger: '#ff0066',
+              warning: '#ffaa00',
+              text: '#e0e6ed',
+            }
+          }
+        }
+      }
+    }
+  </script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    @keyframes matrix {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 159, 0.5); }
+      50% { box-shadow: 0 0 20px rgba(0, 255, 159, 0.8); }
+    }
+    
+    @keyframes scan-line {
+      0% { top: 0; }
+      100% { top: 100%; }
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: #333;
-      height: 100vh;
-      overflow: hidden;
+    .matrix-bg {
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      pointer-events: none;
+      background: 
+        linear-gradient(0deg, transparent 24%, rgba(0, 255, 159, 0.05) 25%, rgba(0, 255, 159, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 159, 0.05) 75%, rgba(0, 255, 159, 0.05) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(0, 255, 159, 0.05) 25%, rgba(0, 255, 159, 0.05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 159, 0.05) 75%, rgba(0, 255, 159, 0.05) 76%, transparent 77%, transparent);
+      background-size: 50px 50px;
     }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      text-align: center;
-      color: white;
-      margin-bottom: 2rem;
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 0.5rem;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    .subtitle {
-      font-size: 1.1rem;
-      opacity: 0.9;
-    }
-
-    .content {
-      background: white;
-      border-radius: 20px;
-      padding: 2rem;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .form-section {
-      margin-bottom: 2rem;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      color: #555;
-    }
-
-    input[type="text"],
-    textarea {
+    .scan-line {
+      position: absolute;
       width: 100%;
-      padding: 0.75rem;
-      border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s;
+      height: 2px;
+      background: linear-gradient(to bottom, transparent, rgba(0, 255, 159, 0.8), transparent);
+      animation: scan-line 3s linear infinite;
+      pointer-events: none;
     }
 
-    input[type="text"]:focus,
-    textarea:focus {
-      outline: none;
-      border-color: #667eea;
+    .glow-text {
+      text-shadow: 0 0 10px rgba(0, 255, 159, 0.8);
     }
 
-    textarea {
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .button-group {
-      display: flex;
-      gap: 1rem;
-    }
-
-    button {
-      flex: 1;
-      padding: 1rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-secondary {
-      background: #f0f0f0;
-      color: #555;
-    }
-
-    .btn-secondary:hover {
-      background: #e0e0e0;
-    }
-
-    .notification-log {
-      flex: 1;
-      margin-top: 1rem;
-      overflow-y: auto;
-      border-top: 2px solid #e0e0e0;
-      padding-top: 1rem;
-    }
-
-    .log-title {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: #555;
-    }
-
-    .log-item {
-      background: #f8f9fa;
-      padding: 0.75rem;
-      margin-bottom: 0.5rem;
-      border-radius: 8px;
-      border-left: 4px solid #667eea;
-      animation: slideIn 0.3s ease-out;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .log-item-title {
-      font-weight: 600;
-      color: #667eea;
-      margin-bottom: 0.25rem;
-    }
-
-    .log-item-body {
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 0.25rem;
-    }
-
-    .log-item-time {
-      color: #999;
-      font-size: 0.8rem;
-    }
-
-    .info-box {
-      background: #e3f2fd;
-      border: 1px solid #90caf9;
-      border-radius: 8px;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .info-box h3 {
-      color: #1976d2;
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-    }
-
-    .info-box code {
-      background: white;
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      font-family: 'Courier New', monospace;
-      color: #c7254e;
+    .card-glow {
+      animation: pulse-glow 2s ease-in-out infinite;
     }
 
     ::-webkit-scrollbar {
@@ -206,81 +73,167 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 4px;
+      background: #141b3d;
     }
 
     ::-webkit-scrollbar-thumb {
-      background: #667eea;
+      background: #00ff9f;
       border-radius: 4px;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: #764ba2;
+      background: #00cc7f;
     }
   </style>
 </head>
-<body>
-  <div class="container">
-    <header>
-      <h1>🔔 Sanches Notifications</h1>
-      <p class="subtitle">Real-Time Notification System</p>
+<body class="bg-cyber-bg text-cyber-text font-mono overflow-hidden">
+  <div class="matrix-bg"></div>
+  
+  <div class="relative min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="relative border-b border-cyber-accent/30 bg-cyber-surface/50 backdrop-blur-sm">
+      <div class="scan-line"></div>
+      <div class="max-w-7xl mx-auto px-6 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-cyber-accent/10 rounded-lg flex items-center justify-center border border-cyber-accent/30">
+              <span class="text-2xl glow-text">🛡️</span>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold glow-text text-cyber-accent">SANCHES</h1>
+              <p class="text-xs text-cyber-text/60">Security Monitor v1.0</p>
+            </div>
+          </div>
+          
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <div class="w-2 h-2 bg-cyber-accent rounded-full card-glow"></div>
+              <span class="text-sm text-cyber-text/80">System Active</span>
+            </div>
+            <button id="runScanBtn" class="px-4 py-2 bg-cyber-accent/20 border border-cyber-accent/50 rounded-lg hover:bg-cyber-accent/30 transition-all text-cyber-accent text-sm font-semibold">
+              ⚡ Run Scan Now
+            </button>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <div class="content">
-      <div class="info-box">
-        <h3>📡 WebSocket Server Active</h3>
-        <p>Send notifications via WebSocket on <code>ws://localhost:8080</code></p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-          Example: <code>{"type":"notification","title":"Hello","body":"World"}</code>
-        </p>
-      </div>
-
-      <div class="form-section">
-        <div class="form-group">
-          <label for="notificationTitle">Notification Title</label>
-          <input type="text" id="notificationTitle" placeholder="Enter notification title..." value="Hello from Sanches!">
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden">
+      <div class="max-w-7xl mx-auto px-6 py-6 h-full flex flex-col gap-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-4 gap-4">
+          <div class="bg-cyber-surface/50 backdrop-blur-sm border border-cyber-danger/30 rounded-lg p-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-cyber-danger/5 rounded-full blur-xl"></div>
+            <div class="relative">
+              <p class="text-cyber-danger/60 text-xs uppercase tracking-wider mb-1">Critical</p>
+              <p class="text-3xl font-bold text-cyber-danger" id="criticalCount">0</p>
+            </div>
+          </div>
+          
+          <div class="bg-cyber-surface/50 backdrop-blur-sm border border-cyber-warning/30 rounded-lg p-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-cyber-warning/5 rounded-full blur-xl"></div>
+            <div class="relative">
+              <p class="text-cyber-warning/60 text-xs uppercase tracking-wider mb-1">Warnings</p>
+              <p class="text-3xl font-bold text-cyber-warning" id="warningCount">0</p>
+            </div>
+          </div>
+          
+          <div class="bg-cyber-surface/50 backdrop-blur-sm border border-blue-400/30 rounded-lg p-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-blue-400/5 rounded-full blur-xl"></div>
+            <div class="relative">
+              <p class="text-blue-400/60 text-xs uppercase tracking-wider mb-1">Dependencies</p>
+              <p class="text-3xl font-bold text-blue-400" id="depsCount">0</p>
+            </div>
+          </div>
+          
+          <div class="bg-cyber-surface/50 backdrop-blur-sm border border-cyber-accent/30 rounded-lg p-4 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-20 h-20 bg-cyber-accent/5 rounded-full blur-xl"></div>
+            <div class="relative">
+              <p class="text-cyber-accent/60 text-xs uppercase tracking-wider mb-1">Last Scan</p>
+              <p class="text-sm font-semibold text-cyber-accent" id="lastScan">--:--:--</p>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="notificationBody">Notification Body</label>
-          <textarea id="notificationBody" placeholder="Enter notification message...">This is a real-time notification from your Electron app!</textarea>
+        <!-- Working Directory -->
+        <div class="bg-cyber-surface/50 backdrop-blur-sm border border-cyber-accent/20 rounded-lg p-4">
+          <div class="flex items-center gap-2">
+            <span class="text-cyber-accent/60 text-sm">📂 Monitoring:</span>
+            <code class="text-cyber-accent text-sm font-mono" id="workingDir">...</code>
+          </div>
         </div>
 
-        <div class="button-group">
-          <button class="btn-primary" id="sendNotificationBtn">
-            🚀 Send Notification
-          </button>
-          <button class="btn-secondary" id="clearLogBtn">
-            🗑️ Clear Log
-          </button>
+        <!-- Issues List -->
+        <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-bold text-cyber-accent glow-text">Security Issues</h2>
+            <div class="flex gap-2 text-xs">
+              <button class="filter-btn active px-3 py-1 rounded-full border" data-filter="all">All</button>
+              <button class="filter-btn px-3 py-1 rounded-full border border-cyber-danger/30 text-cyber-danger" data-filter="critical">Critical</button>
+              <button class="filter-btn px-3 py-1 rounded-full border border-cyber-warning/30 text-cyber-warning" data-filter="warning">Warnings</button>
+              <button class="filter-btn px-3 py-1 rounded-full border border-blue-400/30 text-blue-400" data-filter="dependencies">Dependencies</button>
+            </div>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto space-y-2 pr-2" id="issuesContainer" style="max-height: calc(100vh - 400px);">
+            <!-- Issues will be dynamically inserted here -->
+            <div class="text-center py-20 text-cyber-text/40">
+              <div class="text-6xl mb-4">🔍</div>
+              <p>Waiting for scan results...</p>
+              <p class="text-sm mt-2">Scans run automatically every minute</p>
+            </div>
+          </div>
         </div>
       </div>
-
-      <div class="notification-log">
-        <div class="log-title">📋 Notification History</div>
-        <div id="logContainer"></div>
-      </div>
-    </div>
+    </main>
   </div>
 
   <script>
-    const logContainer = document.getElementById('logContainer');
-    const sendBtn = document.getElementById('sendNotificationBtn');
-    const clearBtn = document.getElementById('clearLogBtn');
-    const titleInput = document.getElementById('notificationTitle');
-    const bodyInput = document.getElementById('notificationBody');
+    let currentFilter = 'all';
+    let latestScanData = null;
 
-    // Add notification to log
-    function addToLog(title, body, timestamp) {
-      const logItem = document.createElement('div');
-      logItem.className = 'log-item';
-      logItem.innerHTML = `
-        <div class="log-item-title">${escapeHtml(title)}</div>
-        <div class="log-item-body">${escapeHtml(body)}</div>
-        <div class="log-item-time">${new Date(timestamp).toLocaleString()}</div>
-      `;
-      logContainer.insertBefore(logItem, logContainer.firstChild);
+    const criticalCountEl = document.getElementById('criticalCount');
+    const warningCountEl = document.getElementById('warningCount');
+    const depsCountEl = document.getElementById('depsCount');
+    const lastScanEl = document.getElementById('lastScan');
+    const workingDirEl = document.getElementById('workingDir');
+    const issuesContainerEl = document.getElementById('issuesContainer');
+    const runScanBtn = document.getElementById('runScanBtn');
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active', 'bg-cyber-accent/20', 'border-cyber-accent', 'text-cyber-accent'));
+        btn.classList.add('active', 'bg-cyber-accent/20', 'border-cyber-accent', 'text-cyber-accent');
+        currentFilter = btn.dataset.filter;
+        if (latestScanData) {
+          renderIssues(latestScanData);
+        }
+      });
+    });
+
+    // Run scan manually
+    runScanBtn.addEventListener('click', async () => {
+      runScanBtn.disabled = true;
+      runScanBtn.innerHTML = '⏳ Scanning...';
+      
+      const result = await window.electronAPI.runScan();
+      if (result) {
+        handleScanResult(result);
+      }
+      
+      runScanBtn.disabled = false;
+      runScanBtn.innerHTML = '⚡ Run Scan Now';
+    });
+
+    // Format file path for display
+    function formatFilePath(filepath) {
+      const parts = filepath.split('/');
+      if (parts.length > 4) {
+        return '.../' + parts.slice(-3).join('/');
+      }
+      return filepath;
     }
 
     // Escape HTML to prevent XSS
@@ -290,51 +243,148 @@
       return div.innerHTML;
     }
 
-    // Send notification
-    sendBtn.addEventListener('click', async () => {
-      const title = titleInput.value.trim();
-      const body = bodyInput.value.trim();
+    // Copy to clipboard function
+    function copyToClipboard(text, button) {
+      navigator.clipboard.writeText(text).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = '✓';
+        button.classList.add('bg-cyber-accent/30');
+        
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.classList.remove('bg-cyber-accent/30');
+        }, 1500);
+      }).catch(err => {
+        console.error('Failed to copy:', err);
+        button.innerHTML = '✗';
+        setTimeout(() => {
+          button.innerHTML = '📋';
+        }, 1500);
+      });
+    }
 
-      if (!title || !body) {
-        alert('Please fill in both title and body!');
+    // Render issues
+    function renderIssues(data) {
+      latestScanData = data;
+      
+      let issues = [];
+      
+      if (currentFilter === 'all' || currentFilter === 'critical') {
+        issues.push(...(data.critical || []).map(item => ({ ...item, type: 'critical' })));
+      }
+      
+      if (currentFilter === 'all' || currentFilter === 'warning') {
+        issues.push(...(data.warning || []).map(item => ({ ...item, type: 'warning' })));
+      }
+      
+      if (currentFilter === 'all' || currentFilter === 'dependencies') {
+        issues.push(...(data.dependencies || []).map(item => ({ ...item, type: 'dependencies' })));
+      }
+
+      if (issues.length === 0) {
+        issuesContainerEl.innerHTML = `
+          <div class="text-center py-20 text-cyber-accent">
+            <div class="text-6xl mb-4">✅</div>
+            <p class="text-xl font-bold glow-text">All Clear!</p>
+            <p class="text-sm mt-2 text-cyber-text/60">No ${currentFilter === 'all' ? '' : currentFilter} issues detected</p>
+          </div>
+        `;
         return;
       }
 
-      try {
-        await window.electronAPI.sendNotification(title, body);
-        addToLog(title, body, new Date().toISOString());
-      } catch (error) {
-        console.error('Error sending notification:', error);
-        alert('Failed to send notification!');
+      issuesContainerEl.innerHTML = issues.map(issue => {
+        const colors = {
+          critical: { bg: 'bg-cyber-danger/5', border: 'border-cyber-danger/30', text: 'text-cyber-danger', badge: 'bg-cyber-danger/20' },
+          warning: { bg: 'bg-cyber-warning/5', border: 'border-cyber-warning/30', text: 'text-cyber-warning', badge: 'bg-cyber-warning/20' },
+          dependencies: { bg: 'bg-blue-400/5', border: 'border-blue-400/30', text: 'text-blue-400', badge: 'bg-blue-400/20' }
+        }[issue.type];
+
+        const icon = {
+          critical: '🚨',
+          warning: '⚠️',
+          dependencies: '📦'
+        }[issue.type];
+
+        if (issue.type === 'dependencies') {
+          return `
+            <div class="relative ${colors.bg} backdrop-blur-sm border ${colors.border} rounded-lg p-3 hover:${colors.border.replace('/30', '/50')} transition-all">
+              <div class="flex items-start gap-2">
+                <div class="text-xl">${icon}</div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2 py-0.5 ${colors.badge} ${colors.text} text-xs font-bold uppercase rounded">
+                      ${issue.type}
+                    </span>
+                    <span class="text-xs ${colors.text} opacity-60">${issue.package_type || 'N/A'}</span>
+                  </div>
+                  <p class="font-bold ${colors.text} text-sm mb-1">${issue.package || 'Unknown Package'}</p>
+                  <p class="text-xs text-cyber-text/80 break-words">${issue.description || 'No description'}</p>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="relative ${colors.bg} backdrop-blur-sm border ${colors.border} rounded-lg p-3 hover:${colors.border.replace('/30', '/50')} transition-all">
+            <div class="flex items-start gap-2">
+              <div class="text-xl">${icon}</div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 mb-2 group">
+                  <span class="px-2 py-0.5 ${colors.badge} ${colors.text} text-xs font-bold uppercase rounded shrink-0">
+                    ${issue.type}
+                  </span>
+                  <p class="text-xs text-cyber-text/60 font-mono truncate flex-1" title="${issue.file}">
+                    📄 ${formatFilePath(issue.file || 'Unknown file')}
+                  </p>
+                  <button 
+                    onclick="copyToClipboard('${escapeHtml(issue.file || '')}', this)" 
+                    class="opacity-0 group-hover:opacity-100 transition-opacity px-1.5 py-0.5 bg-cyber-accent/10 hover:bg-cyber-accent/20 border border-cyber-accent/30 rounded text-cyber-accent text-xs shrink-0"
+                    title="Copy file path">
+                    📋
+                  </button>
+                </div>
+                <p class="text-xs text-cyber-text/80 break-words">${issue.description || 'No description'}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Handle scan result
+    function handleScanResult(data) {
+      // Update counts
+      criticalCountEl.textContent = data.critical?.length || 0;
+      warningCountEl.textContent = data.warning?.length || 0;
+      depsCountEl.textContent = data.dependencies?.length || 0;
+      
+      // Update last scan time
+      const now = new Date();
+      lastScanEl.textContent = now.toLocaleTimeString();
+      
+      // Update working directory
+      if (data.pwd) {
+        workingDirEl.textContent = data.pwd;
       }
+      
+      // Render issues
+      renderIssues(data);
+    }
+
+    // Listen for scan results from main process
+    window.electronAPI.onScanResult((data) => {
+      console.log('Scan result received:', data);
+      handleScanResult(data);
     });
 
-    // Clear log
-    clearBtn.addEventListener('click', () => {
-      logContainer.innerHTML = '';
-    });
-
-    // Listen for notifications from main process
-    window.electronAPI.onNotificationSent((data) => {
-      console.log('Notification sent:', data);
-    });
-
-    // Allow Enter key to send
-    titleInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        sendBtn.click();
+    // Request initial scan
+    setTimeout(async () => {
+      const result = await window.electronAPI.runScan();
+      if (result) {
+        handleScanResult(result);
       }
-    });
-
-    // Add welcome message
-    setTimeout(() => {
-      addToLog(
-        'Welcome!',
-        'Your notification system is ready. Try sending a notification or connect via WebSocket!',
-        new Date().toISOString()
-      );
-    }, 500);
+    }, 1000);
   </script>
 </body>
 </html>
-

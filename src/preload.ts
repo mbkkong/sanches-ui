@@ -10,8 +10,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
 	saveSettings: (settings: any) => ipcRenderer.invoke('save-settings', settings),
 
+	runScan: () => ipcRenderer.invoke('run-scan'),
+
 	onNotificationSent: (callback: (data: any) => void) => {
 		ipcRenderer.on('notification-sent', (_event, data) => callback(data));
+	},
+
+	onScanResult: (callback: (data: any) => void) => {
+		ipcRenderer.on('scan-result', (_event, data) => callback(data));
 	},
 });
 
@@ -20,7 +26,9 @@ export interface ElectronAPI {
 	sendNotification: (title: string, body: string, options?: any) => Promise<{ success: boolean }>;
 	getSettings: () => Promise<any>;
 	saveSettings: (settings: any) => Promise<{ success: boolean }>;
+	runScan: () => Promise<any>;
 	onNotificationSent: (callback: (data: any) => void) => void;
+	onScanResult: (callback: (data: any) => void) => void;
 }
 
 declare global {

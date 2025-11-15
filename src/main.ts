@@ -2,6 +2,10 @@ import * as path from 'node:path';
 import { app, BrowserWindow, ipcMain, Menu, Notification, nativeImage, Tray } from 'electron';
 import Store from 'electron-store';
 import { type WebSocket, WebSocketServer } from 'ws';
+import { exec } from 'node:child_process';
+import { promisify } from 'node:util';
+
+const execAsync = promisify(exec);
 
 // Define store type
 interface StoreType {
@@ -20,18 +24,20 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let wss: WebSocketServer | null = null;
 let isQuitting = false;
+let scanInterval: NodeJS.Timeout | null = null;
 
 // Create the main application window
 function createWindow(): void {
 	mainWindow = new BrowserWindow({
-		width: 800,
-		height: 600,
+		width: 1200,
+		height: 800,
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.js'),
 			nodeIntegration: false,
 			contextIsolation: true,
 		},
 		icon: path.join(__dirname, '../assets/icon.png'),
+		backgroundColor: '#0a0e27',
 	});
 
 	mainWindow.loadFile(path.join(__dirname, '../src/index.html'));
@@ -186,6 +192,56 @@ ipcMain.handle('save-settings', async (_event, settings) => {
 	return { success: true };
 });
 
+ipcMain.handle('run-scan', async () => {
+	const result = await runSanchesScan();
+	return result;
+});
+
+// Run Sanches CLI and get security scan results
+async function runSanchesScan(): Promise<any> {
+	try {
+		const sanchesPath = path.join(__dirname, '../sanches');
+		const { stdout, stderr } = await execAsync(sanchesPath);
+
+		if (stderr) {
+			console.error('Sanches CLI error:', stderr);
+		}
+
+		const result = JSON.parse(stdout);
+		return result;
+	} catch (error) {
+		console.error('Failed to run Sanches scan:', error);
+		return null;
+	}
+}
+
+// Start periodic security scans
+function startSecurityScans(): void {
+	// Run initial scan
+	runSanchesScan().then((result) => {
+		if (result) {
+			mainWindow?.webContents.send('scan-result', result);
+		}
+	});
+
+	// Run scan every 1 minute
+	scanInterval = setInterval(async () => {
+		const result = await runSanchesScan();
+		if (result) {
+			mainWindow?.webContents.send('scan-result', result);
+
+			// Send notification if critical issues found
+			const criticalCount = result.critical?.length || 0;
+			if (criticalCount > 0) {
+				sendNotification(
+					'🚨 Critical Security Issues Detected',
+					`Found ${criticalCount} critical security ${criticalCount === 1 ? 'issue' : 'issues'} in your files!`,
+				);
+			}
+		}
+	}, 60000); // 60000ms = 1 minute
+}
+
 // Schedule periodic notifications (demo)
 function _startPeriodicNotifications(): void {
 	const interval = (store as any).get('notificationInterval', 300000) as number; // Default: 5 minutes
@@ -216,16 +272,14 @@ app.whenReady().then(() => {
 	createTray();
 	initializeWebSocketServer();
 
-	// Send initial notification
+	// Start security scans
 	setTimeout(() => {
+		startSecurityScans();
 		sendNotification(
-			'Welcome to Sanches!',
-			'Your notification app is ready. Connect via WebSocket on port 8080.',
+			'🛡️ Sanches Security Monitor Active',
+			'Running security scans every minute to protect your files.',
 		);
 	}, 2000);
-
-	// Uncomment to enable periodic notifications
-	// startPeriodicNotifications();
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
@@ -244,6 +298,9 @@ app.on('before-quit', () => {
 	isQuitting = true;
 	if (wss) {
 		wss.close();
+	}
+	if (scanInterval) {
+		clearInterval(scanInterval);
 	}
 });
 
