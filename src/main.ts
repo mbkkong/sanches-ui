@@ -73,6 +73,27 @@ function createWindow(): void {
 		mainWindow?.show();
 	});
 
+	// Filter out benign Autofill console errors from DevTools
+	mainWindow.webContents.on('console-message', (_event, level, message) => {
+		// Suppress Autofill-related errors (these are expected in Electron)
+		if (
+			message.includes('Autofill.enable') ||
+			message.includes('Autofill.setAddresses')
+		) {
+			return;
+		}
+		// Log other console messages normally
+		if (level === 3) {
+			// Error level
+			console.error('Renderer:', message);
+		} else if (level === 2) {
+			// Warning level
+			console.warn('Renderer:', message);
+		} else if (process.env.NODE_ENV === 'development') {
+			console.log('Renderer:', message);
+		}
+	});
+
 	// Open DevTools in development
 	if (process.env.NODE_ENV === 'development') {
 		mainWindow.webContents.openDevTools();
