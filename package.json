@@ -54,6 +54,9 @@
 		"wait-on": "^9.0.3"
 	},
 	"dependencies": {
+		"@radix-ui/react-scroll-area": "^1.2.10",
+		"@radix-ui/react-separator": "^1.1.8",
+		"@radix-ui/react-tooltip": "^1.2.8",
 		"electron-store": "^11.0.2",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",

@@ -2,8 +2,14 @@
 module.exports = {
 	content: ['./src/renderer/**/*.{ts,tsx,html}', './src/index.html'],
 	theme: {
-		extend: {},
+		extend: {
+			colors: {
+				success: 'hsl(var(--color-success))',
+				warning: 'hsl(var(--color-warning))',
+				info: 'hsl(var(--color-info))',
+			},
+		},
 	},
-	plugins: [],
+	plugins: [require('tailwindcss-animate')],
 };
 

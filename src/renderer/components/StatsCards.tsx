@@ -1,6 +1,7 @@
 import React from 'react';
-import { AlertTriangle, AlertCircle, Package } from 'lucide-react';
+import { AlertTriangle, AlertCircle, Package, TrendingDown, TrendingUp, Minus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Badge } from './ui/badge';
 
 interface StatsCardsProps {
 	criticalCount: number;
@@ -14,40 +15,82 @@ export const StatsCards: React.FC<StatsCardsProps> = ({
 	depsCount,
 }) => {
 	return (
-		<div className="grid grid-cols-3 gap-4">
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-medium flex items-center gap-2">
-						<AlertCircle className="w-4 h-4 text-destructive" />
-						Critical
-					</CardTitle>
+		<div className="grid grid-cols-3 gap-6 animate-fade-in">
+			<Card className="border-red-200 bg-gradient-to-br from-red-50 to-white hover:shadow-lg hover:border-red-300 transition-all hover:-translate-y-1">
+				<CardHeader className="pb-3">
+					<div className="flex items-center justify-between">
+						<CardTitle className="text-sm font-medium flex items-center gap-3 text-slate-900">
+							<div className="p-2.5 rounded-xl bg-red-100 border border-red-200">
+								<AlertCircle className="w-5 h-5 text-red-600" />
+							</div>
+							<span>Critical Issues</span>
+						</CardTitle>
+						{criticalCount > 0 ? (
+							<Badge className="text-xs font-semibold bg-red-100 text-red-700 border-red-200">
+								High
+							</Badge>
+						) : (
+							<Badge className="text-xs font-semibold bg-emerald-100 text-emerald-700 border-emerald-200">
+								Clear
+							</Badge>
+						)}
+					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="text-3xl font-bold text-destructive">{criticalCount}</div>
+					<div className="flex items-baseline gap-2">
+						<div className="text-5xl font-bold text-red-600">{criticalCount}</div>
+						<span className="text-sm text-slate-600 font-medium">found</span>
+					</div>
 				</CardContent>
 			</Card>
 
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-medium flex items-center gap-2">
-						<AlertTriangle className="w-4 h-4 text-yellow-500" />
-						Warnings
-					</CardTitle>
+			<Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-white hover:shadow-lg hover:border-amber-300 transition-all hover:-translate-y-1">
+				<CardHeader className="pb-3">
+					<div className="flex items-center justify-between">
+						<CardTitle className="text-sm font-medium flex items-center gap-3 text-slate-900">
+							<div className="p-2.5 rounded-xl bg-amber-100 border border-amber-200">
+								<AlertTriangle className="w-5 h-5 text-amber-600" />
+							</div>
+							<span>Warnings</span>
+						</CardTitle>
+						{warningCount > 0 ? (
+							<Badge className="text-xs font-semibold bg-amber-100 text-amber-700 border-amber-200">
+								Medium
+							</Badge>
+						) : (
+							<Badge className="text-xs font-semibold bg-emerald-100 text-emerald-700 border-emerald-200">
+								Clear
+							</Badge>
+						)}
+					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="text-3xl font-bold text-yellow-500">{warningCount}</div>
+					<div className="flex items-baseline gap-2">
+						<div className="text-5xl font-bold text-amber-600">{warningCount}</div>
+						<span className="text-sm text-slate-600 font-medium">found</span>
+					</div>
 				</CardContent>
 			</Card>
 
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-sm font-medium flex items-center gap-2">
-						<Package className="w-4 h-4 text-blue-500" />
-						Dependencies
-					</CardTitle>
+			<Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white hover:shadow-lg hover:border-blue-300 transition-all hover:-translate-y-1">
+				<CardHeader className="pb-3">
+					<div className="flex items-center justify-between">
+						<CardTitle className="text-sm font-medium flex items-center gap-3 text-slate-900">
+							<div className="p-2.5 rounded-xl bg-blue-100 border border-blue-200">
+								<Package className="w-5 h-5 text-blue-600" />
+							</div>
+							<span>Dependencies</span>
+						</CardTitle>
+						<Badge className="text-xs font-semibold bg-blue-100 text-blue-700 border-blue-200">
+							Info
+						</Badge>
+					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="text-3xl font-bold text-blue-500">{depsCount}</div>
+					<div className="flex items-baseline gap-2">
+						<div className="text-5xl font-bold text-blue-600">{depsCount}</div>
+						<span className="text-sm text-slate-600 font-medium">tracked</span>
+					</div>
 				</CardContent>
 			</Card>
 		</div>
