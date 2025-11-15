@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { AlertCircle, AlertTriangle, Package, Copy, CheckCircle2, FileText, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import type { IssueType, IssueWithType, DependencyIssue } from '../types';
+import { AlertCircle, AlertTriangle, Copy, CheckCircle2, FileText, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { IssueType, IssueWithType } from '../types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -11,10 +11,9 @@ import { Input } from './ui/input';
 
 interface IssuesListProps {
 	issues: IssueWithType[];
-	dependencies: DependencyIssue[];
 }
 
-export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) => {
+export const IssuesList: React.FC<IssuesListProps> = ({ issues }) => {
 	const [filter, setFilter] = useState<'all' | IssueType>('all');
 	const [copiedIndex, setCopiedIndex] = useState<string | null>(null);
 	const [promptCopied, setPromptCopied] = useState(false);
@@ -23,10 +22,9 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 	const itemsPerPage = 10;
 
 	// Filter and search logic
-	const { filteredIssues, filteredDeps, totalItems } = useMemo(() => {
+	const { filteredIssues, totalItems } = useMemo(() => {
 		// Filter by type
 		let issues_filtered = issues.filter((issue) => filter === 'all' || issue.type === filter);
-		let deps_filtered = filter === 'all' || filter === 'dependencies' ? dependencies : [];
 
 		// Search filter
 		if (searchQuery.trim()) {
@@ -37,31 +35,23 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 					issue.file?.toLowerCase().includes(query) ||
 					issue.file_name?.toLowerCase().includes(query)
 			);
-			deps_filtered = deps_filtered.filter(
-				(dep) =>
-					dep.description?.toLowerCase().includes(query) ||
-					dep.package?.toLowerCase().includes(query) ||
-					dep.package_type?.toLowerCase().includes(query)
-			);
 		}
 
 		return {
 			filteredIssues: issues_filtered,
-			filteredDeps: deps_filtered,
-			totalItems: issues_filtered.length + deps_filtered.length,
+			totalItems: issues_filtered.length,
 		};
-	}, [issues, dependencies, filter, searchQuery]);
+	}, [issues, filter, searchQuery]);
 
 	// Pagination logic
-	const { paginatedIssues, paginatedDeps, totalPages, showPagination } = useMemo(() => {
-		const total = filteredIssues.length + filteredDeps.length;
+	const { paginatedIssues, totalPages, showPagination } = useMemo(() => {
+		const total = filteredIssues.length;
 		const totalPgs = Math.ceil(total / itemsPerPage);
 		const showPag = total > itemsPerPage;
 
 		if (!showPag) {
 			return {
 				paginatedIssues: filteredIssues,
-				paginatedDeps: filteredDeps,
 				totalPages: 1,
 				showPagination: false,
 			};
@@ -70,21 +60,14 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 		const startIdx = (currentPage - 1) * itemsPerPage;
 		const endIdx = startIdx + itemsPerPage;
 
-		// Combine issues and deps for pagination
-		const allItems = [...filteredIssues, ...filteredDeps];
-		const paginatedItems = allItems.slice(startIdx, endIdx);
-
-		// Split back into issues and deps
-		const pagIssues = paginatedItems.filter((item) => 'type' in item) as IssueWithType[];
-		const pagDeps = paginatedItems.filter((item) => 'package' in item) as DependencyIssue[];
+		const pagIssues = filteredIssues.slice(startIdx, endIdx);
 
 		return {
 			paginatedIssues: pagIssues,
-			paginatedDeps: pagDeps,
 			totalPages: totalPgs,
 			showPagination: true,
 		};
-	}, [filteredIssues, filteredDeps, currentPage]);
+	}, [filteredIssues, currentPage]);
 
 	// Reset to page 1 when filter or search changes
 	// biome-ignore lint/correctness/useExhaustiveDependencies: Only reset on filter/search changes
@@ -146,14 +129,11 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 				return <AlertCircle className="w-3.5 h-3.5 text-red-600" />;
 			case 'warning':
 				return <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />;
-			case 'dependencies':
-				return <Package className="w-3.5 h-3.5 text-blue-600" />;
 		}
 	};
 
 	const criticalCount = issues.filter((i) => i.type === 'critical').length;
 	const warningCount = issues.filter((i) => i.type === 'warning').length;
-	const depsCount = dependencies.length;
 	const hasRelevantIssues = criticalCount > 0 || warningCount > 0;
 
 	return (
@@ -199,9 +179,6 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 							<TabsTrigger value="warning" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
 								Warnings {warningCount > 0 && <Badge className="ml-1 text-[9px] bg-amber-100 text-amber-700 border-amber-200 px-1 py-0">{warningCount}</Badge>}
 							</TabsTrigger>
-							<TabsTrigger value="dependencies" className="data-[state=active]:bg-white data-[state=active]:shadow-sm font-medium text-[11px] px-2 py-1">
-								Deps {depsCount > 0 && <Badge className="ml-1 text-[9px] bg-blue-100 text-blue-700 border-blue-200 px-1 py-0">{depsCount}</Badge>}
-							</TabsTrigger>
 						</TabsList>
 					</div>
 				</div>
@@ -212,7 +189,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 						<Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
 						<Input
 							type="text"
-							placeholder="Search issues by description, file name, or package..."
+							placeholder="Search issues by description or file name..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
 							className="pl-8 bg-white border-slate-200 focus:border-blue-400 focus:ring-blue-400 h-8 text-xs"
@@ -224,7 +201,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 
 				<TabsContent value={filter} className="flex-1 mt-0 flex flex-col min-h-0">
 					<ScrollArea className="flex-1 pr-4 h-full">
-						{paginatedIssues.length === 0 && paginatedDeps.length === 0 ? (
+						{paginatedIssues.length === 0 ? (
 							<Card className="border-dashed border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-white shadow-sm">
 								<CardContent className="flex flex-col items-center justify-center py-10 p-4">
 									<div className="relative mb-4">
@@ -301,38 +278,6 @@ export const IssuesList: React.FC<IssuesListProps> = ({ issues, dependencies }) 
 													)}
 												</Button>
 											</div>
-										</CardContent>
-									</Card>
-								))}
-								{paginatedDeps.map((dep, idx) => (
-									<Card 
-										key={`dep-${currentPage}-${idx}-${dep.package}`} 
-										className="hover:shadow-lg transition-all shadow-sm border-l-4 border-l-blue-500 bg-gradient-to-r from-blue-50 to-white border-blue-200 animate-slide-in"
-									>
-										<CardHeader className="pb-1.5 p-3">
-											<div className="flex items-start gap-2">
-												<div className="p-1.5 rounded-lg bg-blue-100 border border-blue-200">
-													{getIssueIcon('dependencies')}
-												</div>
-												<div className="flex-1 min-w-0">
-													<div className="flex items-center gap-1.5 mb-1 flex-wrap">
-														<Badge className="bg-blue-100 text-blue-700 border-blue-200 font-semibold text-[9px] px-1.5 py-0">
-															DEPENDENCY
-														</Badge>
-														<Badge variant="outline" className="text-[9px] border-slate-200 text-slate-600 px-1.5 py-0">
-															{dep.package_type || 'N/A'}
-														</Badge>
-													</div>
-													<CardTitle className="text-xs font-semibold text-blue-700 break-words">
-														{dep.package || 'Unknown Package'}
-													</CardTitle>
-												</div>
-											</div>
-										</CardHeader>
-										<CardContent className="pt-0 p-3">
-											<CardDescription className="break-words leading-relaxed text-slate-600 text-[11px]">
-												{dep.description || 'No description'}
-											</CardDescription>
 										</CardContent>
 									</Card>
 								))}

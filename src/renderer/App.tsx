@@ -100,7 +100,6 @@ export const App: React.FC = () => {
 					<StatsCards
 						criticalCount={scanResult?.critical.length || 0}
 						warningCount={scanResult?.warning.length || 0}
-						depsCount={scanResult?.dependencies.length || 0}
 					/>
 
 					<ProjectSelector
@@ -111,7 +110,7 @@ export const App: React.FC = () => {
 						onManageProjects={() => setIsManageModalOpen(true)}
 					/>
 
-					<IssuesList issues={issuesWithType} dependencies={scanResult?.dependencies || []} />
+					<IssuesList issues={issuesWithType} />
 				</div>
 			</main>
 
